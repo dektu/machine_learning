@@ -112,11 +112,16 @@ def inspect_annotations(paths: list, labels_csv: list = None, filename_col: str 
 
         detected_fcol = filename_col or _detect_column(df.columns, C.FILENAME_COLUMNS)
         detected_lcol = label_col or _detect_column(df.columns, C.LABEL_COLUMNS)
+        motif_cols = [c for c in df.columns if c in getattr(C, "MOTIF_CLASSES", [])]
+        is_multilabel_motif = len(motif_cols) >= 2 and not detected_lcol
 
         print(f"    Deteksi kolom filename: '{detected_fcol}'")
-        print(f"    Deteksi kolom label: '{detected_lcol}'")
+        if is_multilabel_motif:
+            print(f"    Deteksi format label: Multi-Label Motif BaliCarving ({len(motif_cols)} motif: {motif_cols})")
+        else:
+            print(f"    Deteksi kolom label: '{detected_lcol}'")
 
-        if not detected_fcol or not detected_lcol:
+        if not detected_fcol or (not detected_lcol and not is_multilabel_motif):
             print("    [PERINGATAN] Gagal mendeteksi kolom filename atau label secara otomatis.")
             print(f"    Gunakan --filename-col dan --label-col secara spesifik.")
             continue

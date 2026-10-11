@@ -34,8 +34,9 @@ MAX_RESIDUAL_BLACK = 0.02        # jika hasil crop masih >2% hitam, crop dibatal
 MIN_KEEP_AREA_RATIO = 0.5        # crop tidak boleh membuang lebih dari 50% luas citra
 
 # Pembacaan anotasi (kolom dicari tanpa membedakan huruf besar/kecil)
-FILENAME_COLUMNS = ["filename", "file_name", "image", "image_name", "img", "path"]
+FILENAME_COLUMNS = ["filename", "file_name", "image", "image_name", "img", "path", "name"]
 LABEL_COLUMNS = ["label", "class", "kelas", "kategori", "category", "motif"]
+MOTIF_CLASSES = ["Barong", "Cina", "Punggel", "Keketusan", "Daun", "Gajah", "Goak"]
 
 # Reduksi dimensi
 PCA_VARIANCE = 0.95              # explained variance yang sama untuk semua embedding agar perbandingan adil

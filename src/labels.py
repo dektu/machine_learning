@@ -46,18 +46,39 @@ def load_annotations(
         f_col = filename_col or _detect_column(df.columns, C.FILENAME_COLUMNS)
         l_col = label_col or _detect_column(df.columns, C.LABEL_COLUMNS)
 
-        if not f_col or not l_col:
+        # Cek apakah ini CSV format multi-label motif BaliCarving (misal kolom Barong, Cina, dsb.)
+        motif_cols = [c for c in df.columns if c in getattr(C, "MOTIF_CLASSES", [])]
+        is_multilabel_motif = len(motif_cols) >= 2 and not l_col
+
+        if not f_col:
             raise ValueError(
-                f"Tidak dapat mendeteksi kolom nama file atau label pada {path.name}. "
+                f"Tidak dapat mendeteksi kolom nama file pada {path.name}. "
                 f"Kolom tersedia: {list(df.columns)}. "
-                "Tentukan secara eksplisit menggunakan --filename-col dan --label-col."
+                "Tentukan secara eksplisit menggunakan --filename-col."
+            )
+
+        if not l_col and not is_multilabel_motif:
+            raise ValueError(
+                f"Tidak dapat mendeteksi kolom label pada {path.name}. "
+                f"Kolom tersedia: {list(df.columns)}. "
+                "Tentukan secara eksplisit menggunakan --label-col."
             )
 
         for _, row in df.iterrows():
             raw_file = str(row[f_col]).strip()
-            raw_label = str(row[l_col]).strip()
-            if not raw_file or not raw_label or raw_label.lower() in ("nan", "none"):
+            if not raw_file or raw_file.lower() in ("nan", "none"):
                 continue
+
+            if is_multilabel_motif:
+                # Ambil motif yang bernilai positif (== 1)
+                active_motifs = [col for col in motif_cols if row[col] == 1]
+                if not active_motifs:
+                    continue
+                raw_label = "+".join(active_motifs)
+            else:
+                raw_label = str(row[l_col]).strip()
+                if not raw_label or raw_label.lower() in ("nan", "none"):
+                    continue
 
             fname = Path(raw_file).name
             mapping[fname] = raw_label
