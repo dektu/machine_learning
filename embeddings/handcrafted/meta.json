@@ -1,0 +1,6 @@
+{
+  "signature": "e1b4dc53849908c121f9969e4961220ba841a60be0dd62b3bd40587c4c781e48",
+  "n": 440,
+  "dim": 6243,
+  "weights": "skimage: RGB/HSV/LAB histogram + LBP + GLCM + HOG"
+}

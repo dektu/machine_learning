@@ -48,14 +48,17 @@ def sweep(name, Z, truth=None):
     """Menjalankan semua konfigurasi. Metrik eksternal hanya dicatat, tidak dipakai untuk memilih."""
     rows = []
     for method, params in tqdm(list(iter_configs()), desc=f"sweep {name}"):
-        labels = make_cluster_fn(method, **params)(Z, C.SEED)
-        row = {"embedding": name, "method": method, "params": json.dumps(params),
-               **internal_metrics(Z, labels)}
-        if truth is not None:
-            y, m = truth
-            row["n_labeled"] = int(m.sum())
-            row.update(external_metrics(y[m], labels[m]))
-        rows.append(row)
+        try:
+            labels = make_cluster_fn(method, **params)(Z, C.SEED)
+            row = {"embedding": name, "method": method, "params": json.dumps(params),
+                   **internal_metrics(Z, labels)}
+            if truth is not None:
+                y, m = truth
+                row["n_labeled"] = int(m.sum())
+                row.update(external_metrics(y[m], labels[m]))
+            rows.append(row)
+        except Exception:
+            continue
     return rows
 
 

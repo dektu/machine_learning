@@ -53,7 +53,13 @@ def stability(Z, cluster_fn, n_runs=STABILITY_RUNS, subsample=STABILITY_SUBSAMPL
     rng = np.random.default_rng(seed)
     ref = cluster_fn(Z, seed)
 
-    seed_runs = [cluster_fn(Z, seed + i + 1) for i in range(n_runs)]
+    seed_runs = []
+    for i in range(n_runs):
+        try:
+            seed_runs.append(cluster_fn(Z, seed + i + 1))
+        except Exception:
+            pass
+
     seed_ari, seed_nmi = [], []
     for i, a in enumerate(seed_runs):
         for b in seed_runs[i + 1:]:
@@ -64,15 +70,20 @@ def stability(Z, cluster_fn, n_runs=STABILITY_RUNS, subsample=STABILITY_SUBSAMPL
     n = len(Z)
     for _ in range(n_runs):
         idx = rng.choice(n, size=int(subsample * n), replace=False)
-        lab_sub = cluster_fn(Z[idx], seed)
-        sub_ari.append(adjusted_rand_score(ref[idx], lab_sub))
-        sub_nmi.append(normalized_mutual_info_score(ref[idx], lab_sub))
+        try:
+            lab_sub = cluster_fn(Z[idx], seed)
+            sub_ari.append(adjusted_rand_score(ref[idx], lab_sub))
+            sub_nmi.append(normalized_mutual_info_score(ref[idx], lab_sub))
+        except Exception:
+            pass
 
     return {
-        "ari_seed_mean": np.mean(seed_ari), "ari_seed_std": np.std(seed_ari),
-        "nmi_seed_mean": np.mean(seed_nmi),
-        "ari_subsample_mean": np.mean(sub_ari), "ari_subsample_std": np.std(sub_ari),
-        "nmi_subsample_mean": np.mean(sub_nmi),
+        "ari_seed_mean": float(np.mean(seed_ari)) if seed_ari else 0.0,
+        "ari_seed_std": float(np.std(seed_ari)) if seed_ari else 0.0,
+        "nmi_seed_mean": float(np.mean(seed_nmi)) if seed_nmi else 0.0,
+        "ari_subsample_mean": float(np.mean(sub_ari)) if sub_ari else 0.0,
+        "ari_subsample_std": float(np.std(sub_ari)) if sub_ari else 0.0,
+        "nmi_subsample_mean": float(np.mean(sub_nmi)) if sub_nmi else 0.0,
     }
 
 

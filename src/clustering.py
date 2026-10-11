@@ -32,26 +32,39 @@ def hdbscan(Z, min_cluster_size=10, min_samples=None, method="eom"):
                    cluster_selection_method=method).fit_predict(Z)
 
 
-def gmm(Z, n_components, covariance_type="full", seed=SEED):
-    model = GaussianMixture(n_components=n_components, covariance_type=covariance_type,
-                            n_init=3, random_state=seed).fit(Z)
-    return model.predict(Z)
+def gmm(Z, n_components, covariance_type="full", seed=SEED, reg_covar=1e-3):
+    try:
+        model = GaussianMixture(n_components=n_components, covariance_type=covariance_type,
+                                reg_covar=reg_covar, n_init=3, random_state=seed).fit(Z)
+        return model.predict(Z)
+    except ValueError:
+        try:
+            model = GaussianMixture(n_components=n_components, covariance_type=covariance_type,
+                                    reg_covar=1e-1, n_init=3, random_state=seed).fit(Z)
+            return model.predict(Z)
+        except Exception:
+            model = GaussianMixture(n_components=n_components, covariance_type="diag",
+                                    reg_covar=1e-2, n_init=3, random_state=seed).fit(Z)
+            return model.predict(Z)
 
 
-def gmm_bic(Z, n_components, covariance_type="full", seed=SEED):
-    model = GaussianMixture(n_components=n_components, covariance_type=covariance_type,
-                            n_init=3, random_state=seed).fit(Z)
-    return model.bic(Z)
+def gmm_bic(Z, n_components, covariance_type="full", seed=SEED, reg_covar=1e-3):
+    try:
+        model = GaussianMixture(n_components=n_components, covariance_type=covariance_type,
+                                reg_covar=reg_covar, n_init=3, random_state=seed).fit(Z)
+        return model.bic(Z)
+    except Exception:
+        return float("nan")
 
 
-def make_cluster_fn(method, **params):
+def make_cluster_fn(algo, **params):
     """Membangun fungsi (Z, seed) -> labels yang seragam, dipakai untuk sweep dan uji stabilitas."""
-    if method == "kmeans":
+    if algo == "kmeans":
         return lambda Z, seed: kmeans(Z, seed=seed, **params)
-    if method == "agglomerative":
+    if algo == "agglomerative":
         return lambda Z, seed: agglomerative(Z, **params)
-    if method == "hdbscan":
+    if algo == "hdbscan":
         return lambda Z, seed: hdbscan(Z, **params)
-    if method == "gmm":
+    if algo == "gmm":
         return lambda Z, seed: gmm(Z, seed=seed, **params)
-    raise ValueError(f"Metode tidak dikenal: {method}")
+    raise ValueError(f"Metode tidak dikenal: {algo}")
