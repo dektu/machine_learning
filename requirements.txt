@@ -1,0 +1,14 @@
+numpy
+pandas
+scikit-learn>=1.3
+scikit-image
+umap-learn
+torch
+torchvision
+transformers
+Pillow
+imagehash
+matplotlib
+scipy
+tqdm
+joblib
